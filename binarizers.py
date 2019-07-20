@@ -6,6 +6,10 @@ import torch.optim as optim
 import math
 from torch.autograd import Function
 import numpy as np
+import os
+from torchvision import datasets as datasets
+from torchvision import transforms as transforms
+from torch.utils.data import DataLoader as DataLoader
 
 class Binarize(Function):
     @staticmethod

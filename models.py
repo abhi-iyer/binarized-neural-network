@@ -6,11 +6,15 @@ import torch.optim as optim
 import math
 from torch.autograd import Function
 import numpy as np
+import os
+from torchvision import datasets as datasets
+from torchvision import transforms as transforms
+from torch.utils.data import DataLoader as DataLoader
 from binarizers import *
 
-class Net(nn.Module):
+class MNIST_BNN(nn.Module):
     def __init__(self):
-        super(Net, self).__init__()
+        super(MNIST_BNN, self).__init__()
         #self.conv1 = BinarizeConv2d(1, 6, 5)
         #self.conv2 = BinarizeConv2d(6, 16, 5)
         
@@ -34,8 +38,8 @@ class Net(nn.Module):
         
         self.fc4 = nn.Linear(2048*self.infl_ratio, 10)
         
-        self.logsoftmax=nn.LogSoftmax()
-        self.drop=nn.Dropout(0.5)
+        self.logsoftmax = nn.LogSoftmax(dim=1)
+        self.drop = nn.Dropout(0.5)
         
 
     def forward(self, x):        
@@ -60,10 +64,10 @@ class Net(nn.Module):
         x = self.htanh3(x)
         
         x = self.fc4(x)
-        
+                
         return self.logsoftmax(x)
         #return x
         
-    #def num_flat_features(self, x):
-        #return np.prod(x.size()[1:])
+    def num_flat_features(self, x):
+        return np.prod(x.size()[1:])
         
