@@ -42,7 +42,11 @@ class BinarizeLinear(nn.Linear):
         out = F.linear(input, self.weight)
         
         if not self.bias is None:
-            self.bias.full_precision = self.bias.data.clone() 
+            if not hasattr(self.bias, 'full_precision'):
+                self.bias.full_precision = self.bias.data.clone() 
+            
+            self.bias.data = binarize(self.bias.full_precision)
+            
             out += self.bias.view(1, -1).expand_as(out)
            
         return out
