@@ -15,25 +15,23 @@ from binarizers import *
 class MNIST_BNN(nn.Module):
     def __init__(self):
         super(MNIST_BNN, self).__init__()      
-        self.infl_ratio=3
-        self.fc1 = BinarizeLinear(784, 2048*self.infl_ratio)
+
+        self.fc1 = BinarizeLinear(784, 784*2)
         self.htanh1 = nn.Hardtanh()
-        self.bn1 = nn.BatchNorm1d(2048*self.infl_ratio)
+        self.bn1 = nn.BatchNorm1d(784*2)
         
-        self.fc2 = BinarizeLinear(2048*self.infl_ratio, 2048*self.infl_ratio)
+        self.fc2 = BinarizeLinear(784*2, 784*2)
         self.htanh2 = nn.Hardtanh()
-        self.bn2 = nn.BatchNorm1d(2048*self.infl_ratio)
+        self.bn2 = nn.BatchNorm1d(784*2)
         
-        self.fc3 = BinarizeLinear(2048*self.infl_ratio, 2048*self.infl_ratio)
+        self.fc3 = BinarizeLinear(784*2, 784*2)
         self.htanh3 = nn.Hardtanh()
-        self.bn3 = nn.BatchNorm1d(2048*self.infl_ratio)
+        self.bn3 = nn.BatchNorm1d(784*2)
         
-        self.fc4 = nn.Linear(2048*self.infl_ratio, 10)
-        
+        self.fc4 = BinarizeLinear(784*2, 10)
         self.logsoftmax = nn.LogSoftmax(dim=1)
         self.drop = nn.Dropout(0.5)
-        
-
+    
     def forward(self, x):                        
         x = x.view(-1, 28*28)
         x = self.fc1(x)

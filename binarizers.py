@@ -46,6 +46,18 @@ class BinarizeLinear(nn.Linear):
             out += self.bias.view(1, -1).expand_as(out)
            
         return out
+    
+    def reset_parameters(self):
+        in_features, out_features = self.weight.size()
+        
+        stdev = math.sqrt(1.5 / (in_features + out_features))
+        self.weight.data.uniform_(-stdev, stdev)
+        
+        if self.bias is not None:
+            self.bias.data.zero_()
+            
+        self.weight.lr_scale = 1. / stdev
+        
         
 class BinarizeConv2d(nn.Conv2d):
     def __init__(self, *kargs, **kwargs):
@@ -67,3 +79,18 @@ class BinarizeConv2d(nn.Conv2d):
             out += self.bias.view(1, -1, 1, 1).expand_as(out)
             
         return out
+    
+    def reset_parameters(self):
+        in_features, out_features = self.in_channels, self.out_channels
+        
+        for k in self.kernel_size:
+            in_features *= k
+            out_features *= k
+            
+        stdev = math.sqrt(1.5 / (in_features + out_features))
+        self.weight.data.uniform_(-stdev, stdev)
+        
+        if self.bias is not None:
+            self.bias.data.zero_()
+            
+        self.weight.lr_scale = 1. / stdev
