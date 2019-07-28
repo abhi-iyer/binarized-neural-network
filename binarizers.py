@@ -30,55 +30,40 @@ binarize = Binarize.apply
 class BinarizeLinear(nn.Linear):
     def __init__(self, *kargs, **kwargs):
         super(BinarizeLinear, self).__init__(*kargs, **kwargs)
-
+        
     def forward(self, input):
-        binary_weight = binarize(self.weight)
+        input.data = binarize(input.data)
         
-        if self.bias is None:
-            return F.linear(input, binary_weight)
-        else:
-            return F.linear(input, binary_weight, self.bias)
-   
-    def reset_parameters(self):
-        in_features, out_features = self.weight.size()
+        if not hasattr(self.weight, 'full_precision'):
+            self.weight.full_precision = self.weight.data.clone()
         
-        stdv = math.sqrt(1.5 / (in_features + out_features)) 
-        self.weight.data.uniform_(-stdv, stdv)
+        self.weight.data = binarize(self.weight.full_precision)
         
-        if self.bias is not None:
-            self.bias.data.zero_()
-            
-        self.weight.lr_scale = 1. / stdv
-
+        out = F.linear(input, self.weight)
+        
+        if not self.bias is None:
+            self.bias.full_precision = self.bias.data.clone() 
+            out += self.bias.view(1, -1).expand_as(out)
+           
+        return out
         
 class BinarizeConv2d(nn.Conv2d):
     def __init__(self, *kargs, **kwargs):
         super(BinarizeConv2d, self).__init__(*kargs, **kwargs)
-
+        
     def forward(self, input):
-        binary_weight = binarize(self.weight)
+        input.data = binarize(input.data)
         
-        return F.conv2d(input, binary_weight, self.bias, self.stride, self.padding,
-                        self.dilation, self.groups)
-    
-    def reset_parameters(self):
-        in_features, out_features = self.in_channels, self.out_channels
-        
-        for k in self.kernel_size:
-            in_features *= k
-            out_features *= k
-        
-        stdv = math.sqrt(1.5 / (in_features + out_features)) 
-        self.weight.data.uniform_(-stdv, stdv)
-        
-        if self.bias is not None:
-            self.bias.data.zero_()
+        if not hasattr(self.weight, 'full_precision'):
+            self.weight.full_precision = self.weight.data.clone()
             
-        self.weight.lr_scale = 1. / stdv
+        self.weight.data = binarize(self.weight.full_precision)
         
-
+        out = F.conv2d(input, self.weight, None, self.stride, self.padding, 
+                       self.dilation, self.groups)
         
+        if not self.bias is None:
+            self.bias.full_precision = self.bias.data.clone()
+            out += self.bias.view(1, -1, 1, 1).expand_as(out)
             
-            
-            
-
+        return out
