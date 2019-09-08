@@ -61,40 +61,40 @@ class BinarizeLinear(nn.Linear):
             self.bias.data.zero_()
             
         self.weight.lr_scale = 1. / stdev
+                
         
+# class BinarizeConv2d(nn.Conv2d):
+#     def __init__(self, *kargs, **kwargs):
+#         super(BinarizeConv2d, self).__init__(*kargs, **kwargs)
         
-class BinarizeConv2d(nn.Conv2d):
-    def __init__(self, *kargs, **kwargs):
-        super(BinarizeConv2d, self).__init__(*kargs, **kwargs)
+#     def forward(self, input):
+#         input.data = binarize(input.data)
         
-    def forward(self, input):
-        input.data = binarize(input.data)
-        
-        if not hasattr(self.weight, 'full_precision'):
-            self.weight.full_precision = self.weight.data.clone()
+#         if not hasattr(self.weight, 'full_precision'):
+#             self.weight.full_precision = self.weight.data.clone()
             
-        self.weight.data = binarize(self.weight.full_precision)
+#         self.weight.data = binarize(self.weight.full_precision)
         
-        out = F.conv2d(input, self.weight, None, self.stride, self.padding, 
-                       self.dilation, self.groups)
+#         out = F.conv2d(input, self.weight, None, self.stride, self.padding, 
+#                        self.dilation, self.groups)
         
-        if not self.bias is None:
-            self.bias.full_precision = self.bias.data.clone()
-            out += self.bias.view(1, -1, 1, 1).expand_as(out)
+#         if not self.bias is None:
+#             self.bias.full_precision = self.bias.data.clone()
+#             out += self.bias.view(1, -1, 1, 1).expand_as(out)
             
-        return out
+#         return out
     
-    def reset_parameters(self):
-        in_features, out_features = self.in_channels, self.out_channels
+#     def reset_parameters(self):
+#         in_features, out_features = self.in_channels, self.out_channels
         
-        for k in self.kernel_size:
-            in_features *= k
-            out_features *= k
+#         for k in self.kernel_size:
+#             in_features *= k
+#             out_features *= k
             
-        stdev = math.sqrt(1.5 / (in_features + out_features))
-        self.weight.data.uniform_(-stdev, stdev)
+#         stdev = math.sqrt(1.5 / (in_features + out_features))
+#         self.weight.data.uniform_(-stdev, stdev)
         
-        if self.bias is not None:
-            self.bias.data.zero_()
+#         if self.bias is not None:
+#             self.bias.data.zero_()
             
-        self.weight.lr_scale = 1. / stdev
+#         self.weight.lr_scale = 1. / stdev
