@@ -45,7 +45,7 @@ class BinarizeLinear(nn.Linear):
             if not hasattr(self.bias, 'full_precision'):
                 self.bias.full_precision = self.bias.data.clone() 
             
-            #self.bias.data = binarize(self.bias.full_precision)
+            self.bias.data = binarize(self.bias.full_precision)
             
             out += self.bias.view(1, -1).expand_as(out)
            

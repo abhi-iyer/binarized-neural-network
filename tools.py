@@ -12,10 +12,30 @@ from torchvision import transforms as transforms
 from torch.utils.data import DataLoader as DataLoader
 from math import ceil, floor
 
-from tools import *
-from encoding import *
 from models import *
 from bnn import *
+
+def decompose_net(net):
+    linear = []
+    bn = []
+
+    for name, module in list(net._modules.items()):
+        if 'bn' in name:
+            scale = torch.cuda.FloatTensor(module.weight).unsqueeze(dim=1)
+            bias = torch.cuda.FloatTensor(module.bias).unsqueeze(dim=1)
+            mean = torch.cuda.FloatTensor(module.running_mean).unsqueeze(dim=1)
+            std = torch.cuda.FloatTensor(module.running_var ** 0.5).unsqueeze(dim=1)
+
+            bn.append({'scale' : scale,
+                       'bias' : bias,
+                       'mean' : mean,
+                       'std' : std})
+
+        if 'fc' in name:
+            linear.append({'weight' : module.weight,
+                           'bias' : module.bias})
+            
+    return {"linear" : linear, "bn" : bn}
 
 def verify_net(net):
     decomp = decompose_net(net)
@@ -23,8 +43,10 @@ def verify_net(net):
     
     for each in linear:
         weight = ((each['weight'] == -1).sum() + (each['weight'] == 1).sum()).item()
+        bias = ((each['bias'] == -1).sum() + (each['bias'] == 1).sum()).item()
                 
         assert weight == each['weight'].numel()
+        assert bias == each['bias'].numel()
         
 def manual_prop(manual, linear, bn):
     layer1 = torch.matmul(linear[0]['weight'], manual) + linear[0]['bias'].unsqueeze(1)
