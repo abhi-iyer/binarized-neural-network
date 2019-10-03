@@ -43,10 +43,10 @@ def verify_net(net):
     
     for each in linear:
         weight = ((each['weight'] == -1).sum() + (each['weight'] == 1).sum()).item()
-        bias = ((each['bias'] == -1).sum() + (each['bias'] == 1).sum()).item()
+        #bias = ((each['bias'] == -1).sum() + (each['bias'] == 1).sum()).item()
                 
         assert weight == each['weight'].numel()
-        assert bias == each['bias'].numel()
+        #assert bias == each['bias'].numel()
         
 def manual_prop(manual, linear, bn):
     layer1 = torch.matmul(linear[0]['weight'], manual) + linear[0]['bias'].unsqueeze(1)
